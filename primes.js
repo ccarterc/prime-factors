@@ -1,5 +1,5 @@
 var i = 0, j = 0,
-nums = 30, isPrime = false;
+nums = 3000, isPrime = false, primes = [], start = window.performance.now();
 
 function isInt(a){
   return a % 1 === 0;
@@ -12,5 +12,7 @@ for(i = 1; i < nums; i += 1){
       isPrime = false;
     }
   }
-  if(isPrime === true){console.log("i: "+i);}
+  if(isPrime === true){primes.push(i)}
 }
+console.log(window.performance.now() - start + " ms");
+console.log(primes);
