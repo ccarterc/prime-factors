@@ -9,7 +9,8 @@ app.primes = (function(primes){
 
 	primes.getNums = function(nums){
 		var i, j,
-			isPrime = false, primeNums = [], start = window.performance.now();
+			isPrime = false, primeNums = [], start = window.performance.now(),
+			totalLoops = 0;
 
 		for(i = 2; i < nums; i += 1){
 			isPrime = true;
@@ -17,19 +18,23 @@ app.primes = (function(primes){
 				if(isInt(i / j)){
 					isPrime = false;
 				}
+				totalLoops += 1;
 			}
 			if(isPrime === true){primeNums.push(i);}
 		}
 
 		return {
 			primes: primeNums,
-			time: window.performance.now() - start + " ms"
+			time: window.performance.now() - start + " ms",
+			totalLoops: totalLoops
 		};
 	}
 
 	primes.getMultiTable = function(nums){//create the matrix
 		if (typeof nums === 'undefined') nums = primes.getNums(10).primes;
-		var rows = [];
+		var rows = [],
+			totalLoops = 0, start = window.performance.now();
+
 		nums.forEach(function(ele,rowIndex,arr){//row
 			nums.forEach(function(ele2,colIndex,arr2){//col
 				if(colIndex === 0){//first col
@@ -39,9 +44,14 @@ app.primes = (function(primes){
 				}else{//first row not first col
 					rows[rowIndex].push(ele*ele2);
 				}
+				totalLoops += 1;
 			});
 		});
-		return rows;
+		return {
+			rows: rows,
+			totalLoops: totalLoops,
+			time: window.performance.now() - start + " ms"
+		};
 	}
 
 	primes.createTable = function(numRows){
@@ -73,5 +83,10 @@ app.verify = (function(verify){
 //app.verify.yoursVsTheirs(yourNums.primes);
 
 
-var myNums = app.primes.getNums(500).primes;
-app.primes.getMultiTable(myNums);
+//var myNums = app.primes.getNums(500).primes;
+//app.primes.getMultiTable(myNums);
+
+var myNums = app.primes.getNums(10000);
+var myRows = app.primes.getMultiTable(myNums.primes);
+console.log(myNums);
+console.log(myRows);
