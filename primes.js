@@ -1,3 +1,4 @@
+(function(){
 var i = 0, j = 0,
 nums = 3000, isPrime = false, primes = [], start = window.performance.now();
 
@@ -16,3 +17,5 @@ for(i = 1; i < nums; i += 1){
 }
 console.log(window.performance.now() - start + " ms");
 console.log(primes);
+})()
+
