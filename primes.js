@@ -1,12 +1,81 @@
 var app = (function(app){
-	app.init = function(){
-		var nums = app.primes.getNumsFromTo(10),
-			myRows = app.primes.getMultiTable(nums.primes),
-			table = app.primes.createTable(myRows.rows);
-		$('#container').html(table);
+	app.init = function(startingAt, numPrimes){
+		app.moveBy = numPrimes;
+		app.startingAt = startingAt;
+		app.index = 0;
 
-		console.log(myRows);
+		app.table.moveRight(startingAt, numPrimes);
+
+		attachEventListeners();
 	};
+
+	app.moveLeft = function(){
+		if(app.index > 0){
+			app.startingAt = app.table.multiRows.cols[0][1] - 1;
+			app.table.moveLeft(app.startingAt, app.moveBy);
+			app.index -= 1;
+		}
+	};
+	app.moveRight = function(){
+		app.startingAt = app.table.multiRows.cols[0][app.moveBy] + 1;
+		app.table.moveRight(app.startingAt, app.moveBy);
+		app.index += 1;
+	};
+	app.table = {
+		id: "container",
+		create: function(nums){
+			var html = "<table><tbody>",
+				numCols = nums[0].length, i;
+
+			nums.forEach(function(ele, rowIndex, arr){
+				if(rowIndex === 0) html += "<tr>";
+				for(i = 0; i < numCols; i += 1){
+					html += "<td>"+ele[i]+"</td>";
+				}
+				html += "</tr>";
+			});
+			html += "</tbody></table>";
+			return html;
+		},
+		multiRows: [],
+		moveRight: function(startingAt, numPrimes){
+			var nums, myRows, table;
+
+			nums = app.primes.getNumsFromTo(startingAt, numPrimes);//get first 10 primes starting from 0
+			app.table.multiRows = app.primes.getMultiTable(nums.primes);
+			table = app.table.create(app.table.multiRows.cols);
+			app.table.draw(table);
+		},
+		moveLeft: function(startingAt, numPrimes){
+			var nums, myRows, table;
+
+			nums = app.primes.getNumsToFrom(startingAt, numPrimes);//get first 10 primes starting from 0
+			nums.primes.reverse();
+			app.table.multiRows = app.primes.getMultiTable(nums.primes);
+			table = app.table.create(app.table.multiRows.cols);
+			app.table.draw(table);
+		},
+		draw: function(html){
+			$('#'+app.table.id).html(html);
+		}
+	};
+
+
+	app.navigate = function(event){
+		var target = $(event.target);
+		switch (target.attr('id')){
+			case "left_btn":
+				app.moveLeft();
+				break;
+			case "right_btn":
+				app.moveRight();
+				break;
+		}
+	};
+
+	function attachEventListeners(){
+		$(document).on('click', 'button', app.navigate);
+	}
 
 	return app;
 })(app || {});
@@ -16,12 +85,38 @@ app.primes = (function(primes){
 	  return a % 1 === 0;
 	}
 
-	primes.getNumsFromTo = function(numPrimes){
+	primes.getNumsToFrom = function(startFrom, numPrimes){
 		var i, j,
 			isPrime = false, primeNums = [], start = window.performance.now(),
 			totalLoops = 0, primesFound = 0;
 
-		for(i = 2; primesFound < numPrimes; i += 1){
+		for(i = startFrom; primesFound < numPrimes; i -= 1){
+			isPrime = true;
+			for(j = i-1; j > 1; j -= 1){
+				if(isInt(i / j)){
+					isPrime = false;
+				}
+				totalLoops += 1;
+			}
+			if(isPrime === true){
+				primeNums.push(i);
+				primesFound += 1;
+			}
+		}
+
+		return {
+			primes: primeNums,
+			time: window.performance.now() - start + " ms",
+			totalLoops: totalLoops
+		};
+	};
+
+	primes.getNumsFromTo = function(startFrom, numPrimes){
+		var i, j,
+			isPrime = false, primeNums = [], start = window.performance.now(),
+			totalLoops = 0, primesFound = 0;
+
+		for(i = startFrom; primesFound < numPrimes; i += 1){
 			isPrime = true;
 			for(j = i-1; j > 1; j -= 1){
 				if(isInt(i / j)){
@@ -65,43 +160,34 @@ app.primes = (function(primes){
 		};
 	}
 
-	primes.getMultiTable = function(nums){//create the matrix
-		if (typeof nums === 'undefined') nums = primes.getNums(10).primes;
-		var rows = [],
+	primes.getMultiTable = function(nums){//create the matrix; accepts array of primes
+		var cols = [],
+			numCols = nums.length+1,
+			numRows = numCols,
+			colIndex, rowIndex,
 			totalLoops = 0, start = window.performance.now();
 
-		nums.forEach(function(ele,rowIndex,arr){//row
-			nums.forEach(function(ele2,colIndex,arr2){//col
-				if(colIndex === 0){//first col
-					rows.push([ele]);
-				}else if(rowIndex === 0){//first row not first col
-					rows[rowIndex].push(ele2);
-				}else{//first row not first col
-					rows[rowIndex].push(ele*ele2);
+		cols[0]=[0];//dead cell
+		for(colIndex = 0; colIndex < numCols; colIndex += 1){
+			for(rowIndex = 0; rowIndex < numRows; rowIndex += 1){
+				if(colIndex === 0){
+					if(rowIndex < numRows -1){
+						cols[0].push(nums[rowIndex]);
+					}
+				}else if(rowIndex === 0){
+					cols.push([nums[colIndex-1]]);
+				}else{
+					cols[colIndex].push(nums[colIndex-1]*nums[rowIndex-1]);
 				}
 				totalLoops += 1;
-			});
-		});
+			}
+		}
+
 		return {
-			rows: rows,
+			cols: cols,
 			totalLoops: totalLoops,
 			time: window.performance.now() - start + " ms"
 		};
-	}
-
-	primes.createTable = function(nums){//accepts a multidimensional array
-		var html = "<table><tbody>",
-			numCols = nums[0].length, i;
-
-		nums.forEach(function(ele, rowIndex, arr){
-			if(i === 0) html += "<tr>";
-			for(i = 0; i < numCols; i += 1){
-				html += "<td>"+ele[i]+"</td>";
-			}
-			html += "</tr>";
-		});
-		html += "</tbody></table>";
-		return html;
 	}
 
 	return primes;
@@ -132,4 +218,4 @@ app.verify = (function(verify){
 //var myNums = app.primes.getNums(500).primes;
 //app.primes.getMultiTable(myNums);
 
-app.init();
+app.init(2, 15);//get first 10 primes starting from 2
