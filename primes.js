@@ -1,4 +1,13 @@
 var app = (function(app){
+	app.init = function(){
+		var nums = app.primes.getNumsFromTo(10),
+			myRows = app.primes.getMultiTable(nums.primes),
+			table = app.primes.createTable(myRows.rows);
+		$('#container').html(table);
+
+		console.log(myRows);
+	};
+
 	return app;
 })(app || {});
 
@@ -7,7 +16,33 @@ app.primes = (function(primes){
 	  return a % 1 === 0;
 	}
 
-	primes.getNums = function(nums){
+	primes.getNumsFromTo = function(numPrimes){
+		var i, j,
+			isPrime = false, primeNums = [], start = window.performance.now(),
+			totalLoops = 0, primesFound = 0;
+
+		for(i = 2; primesFound < numPrimes; i += 1){
+			isPrime = true;
+			for(j = i-1; j > 1; j -= 1){
+				if(isInt(i / j)){
+					isPrime = false;
+				}
+				totalLoops += 1;
+			}
+			if(isPrime === true){
+				primeNums.push(i);
+				primesFound += 1;
+			}
+		}
+
+		return {
+			primes: primeNums,
+			time: window.performance.now() - start + " ms",
+			totalLoops: totalLoops
+		};
+	};
+
+	primes.getNums = function(nums){//gets all prime nums less than "nums"
 		var i, j,
 			isPrime = false, primeNums = [], start = window.performance.now(),
 			totalLoops = 0;
@@ -54,8 +89,19 @@ app.primes = (function(primes){
 		};
 	}
 
-	primes.createTable = function(numRows){
+	primes.createTable = function(nums){//accepts a multidimensional array
+		var html = "<table><tbody>",
+			numCols = nums[0].length, i;
 
+		nums.forEach(function(ele, rowIndex, arr){
+			if(i === 0) html += "<tr>";
+			for(i = 0; i < numCols; i += 1){
+				html += "<td>"+ele[i]+"</td>";
+			}
+			html += "</tr>";
+		});
+		html += "</tbody></table>";
+		return html;
 	}
 
 	return primes;
@@ -86,7 +132,4 @@ app.verify = (function(verify){
 //var myNums = app.primes.getNums(500).primes;
 //app.primes.getMultiTable(myNums);
 
-var myNums = app.primes.getNums(10000);
-var myRows = app.primes.getMultiTable(myNums.primes);
-console.log(myNums);
-console.log(myRows);
+app.init();
