@@ -1,0 +1,13 @@
+You should be able to run this script by just running:
+  ruby Prime.rb
+  
+I have set it up to automatically run the script.  Here are the commands that are run upon executing script:
+
+  Primes = Prime.new
+  nums = Primes.get_nums_from_to 2, 10
+  multi_rows = Primes.get_multi_table nums
+  Primes.display_table multi_rows, 6
+  
+  
+You could increase the number 10 to whatever you want.  It is the number of cols and rows
+The number 6 represents the number of digits to hold for each cell and it can be changed.
